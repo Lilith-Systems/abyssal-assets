@@ -3,10 +3,10 @@ import path from 'path'
 
 export default defineConfig({
   root: '.',
-  base: './',
+  base: '/abyssal-assets/',
   publicDir: 'public',
   build: {
-    outDir: 'dist',
+    outDir: '../docs',
     assetsDir: 'assets',
     sourcemap: true,
     rollupOptions: {
@@ -17,6 +17,7 @@ export default defineConfig({
   },
   server: {
     port: 3000,
+    allowedHosts: ['validity-hello-mountain-pray.trycloudflare.com', '.trycloudflare.com'],
     proxy: {
       '/api': {
         target: 'http://localhost:8000',
