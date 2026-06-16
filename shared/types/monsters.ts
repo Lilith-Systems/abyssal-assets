@@ -1,7 +1,7 @@
 // Shared types for Abyssal Assets - Monster System
 
 export type MonsterTier = 
-  | 'ambient'       // Tier 0 - No real threat, Noob/Common drops only
+  | 'noob'          // Tier 0 - No real threat, Noob/Common drops only
   | 'common'        // Tier 1 - Standard wildlife
   | 'uncommon'      // Tier 2 - Notable threats
   | 'rare'          // Tier 3 - Dangerous cryptids

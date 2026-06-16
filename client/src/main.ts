@@ -87,20 +87,5 @@ class AbyssalAssetsGame extends Phaser.Game {
   }
 }
 
-// Initialize game when DOM is ready
-if (document.readyState === 'complete') {
-  new AbyssalAssetsGame(config)
-} else {
-  window.addEventListener('load', () => new AbyssalAssetsGame(config))
-}
-
-// Global type declarations
-declare global {
-  interface Window {
-    game: AbyssalAssetsGame
-    __ABYSSAL_DEBUG__: boolean
-  }
-}
-
 window.game = new AbyssalAssetsGame(config)
 window.__ABYSSAL_DEBUG__ = import.meta.env.DEV

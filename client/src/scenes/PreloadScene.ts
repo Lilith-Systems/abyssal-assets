@@ -215,33 +215,6 @@ export class PreloadScene extends Scene {
       this.scene.start('MainMenuScene')
     })
 
-    // Start loading
-    this.assetList.forEach(asset => {
-      try {
-        switch (asset.type) {
-          case 'image':
-            this.load.image(asset.key, asset.url)
-            break
-          case 'spritesheet':
-            this.load.spritesheet(asset.key, asset.url, asset.frameConfig!)
-            break
-          case 'tilemap':
-            this.load.image(asset.key, asset.url)
-            break
-          case 'tilemapTiledJSON':
-            this.load.tilemapTiledJSON(asset.key, asset.url)
-            break
-          case 'audio':
-            this.load.audio(asset.key, asset.url)
-            break
-          case 'text':
-            this.load.text(asset.key, asset.url)
-            break
-        }
-      } catch (e) {
-        console.warn(`Failed to queue asset ${asset.key}:`, e)
-      }
-    })
   }
 
   private updateProgress(progress: number): void {

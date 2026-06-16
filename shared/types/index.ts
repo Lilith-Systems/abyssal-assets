@@ -1,10 +1,19 @@
 // Shared type definitions for Abyssal Assets
-// Used by both client and server for type-safe communication
+// Barrel file — re-exports all specialized modules
+
+export * from './monsters'
+export * from './skills'
+export * from './synergies'
+export * from './provenance'
+export * from './quests'
+export * from './game-master'
+
+// ─── Game Types (unique to barrel) ──────────────────────────────
 
 export interface MarketItem {
   id: string
   name: string
-  tier: Tier
+  tier: MonsterTier
   price: number
   quantity: number
   sellerId?: string
@@ -28,26 +37,11 @@ export interface MarketItem {
   }
 }
 
-export type Tier =
-  | 'noob'
-  | 'common'
-  | 'uncommon'
-  | 'rare'
-  | 'epic'
-  | 'legendary'
-  | 'mythic'
-
-export const TIER_ORDER: Tier[] = [
-  'noob',
-  'common',
-  'uncommon',
-  'rare',
-  'epic',
-  'legendary',
-  'mythic',
+export const TIER_ORDER: MonsterTier[] = [
+  'noob', 'common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic',
 ]
 
-export const TIER_COLORS: Record<Tier, number> = {
+export const TIER_COLORS: Record<MonsterTier, number> = {
   noob: 0x888888,
   common: 0xffffff,
   uncommon: 0x4caf50,
@@ -111,7 +105,6 @@ export interface PlayerData {
 }
 
 export interface HatData extends MarketItem {
-  // All MarketItem fields + hat-specific
   hatType: string
   equipSlot: 'head'
 }
@@ -124,78 +117,6 @@ export interface BoatData {
   cargoCapacity: number
   speed: number
   durability: number
-}
-
-export interface SkillNode {
-  id: string
-  name: string
-  sephira: 'yesod' | 'hod' | 'tiferet' | 'netzach' | 'chesed' | 'binah'
-  tier: 1 | 2 | 3 | 4 | 5
-  prerequisites: string[]
-  questGate?: string
-  bidirectionalTrace: boolean
-  description: string
-  effects: SkillEffect[]
-}
-
-export type SkillEffect =
-  | { type: 'dredge_speed'; value: number }
-  | { type: 'sonar_resolution'; value: number }
-  | { type: 'crafting_success'; value: number }
-  | { type: 'market_fee_reduction'; value: number }
-  | { type: 'navigation_speed'; value: number }
-  | { type: 'lore_discovery'; value: number }
-  | { type: 'hat_drop_rate'; value: number }
-  | { type: 'essence_yield'; value: number }
-
-export interface QuestData {
-  id: string
-  name: string
-  act: 1 | 2 | 3
-  description: string
-  primarySkill: string
-  secondarySkills: string[]
-  unlockOnComplete: string[]
-  narrativeBeat: string
-  objectives: QuestObjective[]
-  rewards: QuestReward[]
-}
-
-export interface QuestObjective {
-  id: string
-  type: 'dredge' | 'craft' | 'trade' | 'explore' | 'lore' | 'defeat'
-  target: string
-  count: number
-  description: string
-}
-
-export interface QuestReward {
-  type: 'coins' | 'hat' | 'skill_xp' | 'recipe' | 'access' | 'title'
-  value: string | number
-  quantity?: number
-}
-
-export interface MonsterLootEntry {
-  monsterId: string
-  table: WeightedDrop[]
-  valorization: {
-    identifyScrollCost: number
-    cleanseEssenceCost: number
-    salvageYield: ResourceBundle
-  }
-}
-
-export interface WeightedDrop {
-  hatId: string
-  weight: number
-  minTier: Tier
-  maxTier: Tier
-}
-
-export interface ResourceBundle {
-  essence: number
-  scrap: number
-  rareMaterial?: string
 }
 
 export interface NetworkEvents {

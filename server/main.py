@@ -14,12 +14,18 @@ import uuid
 import json
 import asyncio
 from collections import defaultdict
+from pathlib import Path
+from dotenv import load_dotenv
+import os
+import random
+
+load_dotenv()
 
 # === CONFIG ===
-SECRET_KEY = "abyssal-assets-secret-key-change-in-production"
+SECRET_KEY = os.getenv("ABYSSAL_SECRET_KEY", "abyssal-assets-secret-key-change-in-production")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 1 week
-DATABASE_URL = "sqlite:///./abyssal_assets.db"
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "10080"))
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./abyssal_assets.db")
 
 # === DATABASE ===
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
@@ -63,6 +69,7 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     soul_coins = Column(Integer, default=1000)
     clout = Column(Integer, default=0)
+    xp = Column(Integer, default=0)
     current_zone = Column(String, default="shallows")
     boat_level = Column(Integer, default=1)
     is_active = Column(Boolean, default=True)
@@ -331,7 +338,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:8000", "http://127.0.0.1:3000"],
+    allow_origins=os.getenv("CORS_ORIGINS", "http://localhost:3000,http://localhost:8000,http://127.0.0.1:3000").split(","),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -355,18 +362,24 @@ class ConnectionManager:
             self.active_connections[user_id].remove(websocket)
     
     async def send_personal_message(self, message: dict, user_id: int):
+        dead = []
         for ws in self.active_connections[user_id]:
             try:
                 await ws.send_json(message)
-            except:
-                pass
+            except Exception:
+                dead.append(ws)
+        for ws in dead:
+            self.disconnect(ws, user_id)
     
     async def broadcast_market(self, message: dict):
+        dead = []
         for ws in self.market_subscribers:
             try:
                 await ws.send_json(message)
-            except:
-                pass
+            except Exception:
+                dead.append(ws)
+        for ws in dead:
+            self.unsubscribe_market(ws)
     
     def subscribe_market(self, websocket: WebSocket):
         self.market_subscribers.append(websocket)
@@ -502,10 +515,6 @@ async def dredge(request: DredgeRequest, current_user: User = Depends(get_curren
     if current_user.clout < zone_clout_req[request.zone]:
         raise HTTPException(403, f"Need {zone_clout_req[request.zone]} resonance for {request.zone}")
     
-    # Simulate dredge (in reality, client runs mini-game and sends precision)
-    import random
-    precision = random.uniform(0.3, 1.0)  # Simulated
-    
     # Simple loot generation
     zone_items = {
         ZoneEnum.SHALLOWS: ["hat-soggy-visor", "hat-plastic-horns", "hat-wet-cardboard", "hat-wool-beanie"],
@@ -520,19 +529,19 @@ async def dredge(request: DredgeRequest, current_user: User = Depends(get_curren
     hat = db.query(Hat).filter(Hat.id == chosen_id).first()
     
     if hat:
-        # Add to inventory
-        inv = db.query(InventoryItem).filter(InventoryItem.user_id == 1, InventoryItem.hat_id == chosen_id).first()
+        uid = current_user.id
+        inv = db.query(InventoryItem).filter(InventoryItem.user_id == uid, InventoryItem.hat_id == chosen_id).first()
         if inv:
             inv.quantity += 1
         else:
-            inv = InventoryItem(user_id=1, hat_id=chosen_id, quantity=1)
+            inv = InventoryItem(user_id=uid, hat_id=chosen_id, quantity=1)
             db.add(inv)
         
         clout_gained = random.randint(5, 20)
-        xp = clout_gained * 2
         
         current_user.clout += clout_gained
         current_user.soul_coins += 10
+        current_user.xp = (current_user.xp or 0) + clout_gained * 2
         db.commit()
         
         return DredgeResult(
@@ -597,7 +606,7 @@ async def create_order(order: OrderCreate, current_user: User = Depends(get_curr
         quantity=order.quantity,
         expires_at=datetime.utcnow() + timedelta(hours=order.expires_hours) if order.expires_hours else None,
     )
-    db.add(order)
+    db.add(order_obj)
     db.commit()
     db.refresh(order_obj)
     return order_obj
@@ -619,7 +628,8 @@ async def cancel_order(order_id: str, current_user: User = Depends(get_current_u
     
     # Refund
     if order.side == OrderSide.BUY:
-        refund = (order.price * order.quantity) * 1.03
+        unfilled = order.quantity - order.filled_quantity
+        refund = (order.price * unfilled) * 1.03
         current_user.soul_coins += int(refund)
     else:
         # Return items to inventory
@@ -840,12 +850,340 @@ def seed_hats(db: Session):
         # MYTHIC
         Hat(id="hat-nessies-crown", name="Nessie's Lost Crown", rarity=RarityEnum.MYTHIC, zone=ZoneEnum.TRENCH, base_buy_price=0, base_sell_price=0, clout_bonus=10000, discontinued=True, limited_edition=True, max_supply=1, description="The crown the Queen lost. The Loch remembers."),
         Hat(id="hat-original-monster-hat", name="The Original 1933 Monster Hunter's Hat", rarity=RarityEnum.MYTHIC, zone=ZoneEnum.TRENCH, base_buy_price=0, base_sell_price=0, clout_bonus=10000, discontinued=True, limited_edition=True, max_supply=1, description="Worn by the first to see Her. The hat that started it all."),
+        
+        # GM SECRET — only the GM (Eric, user 1) can claim this
+        Hat(id="hat-crown-of-living-sin", name="The Crown of Living Sin", rarity=RarityEnum.MYTHIC, zone=ZoneEnum.TRENCH, base_buy_price=0, base_sell_price=0, clout_bonus=99999, discontinued=True, limited_edition=True, max_supply=1, sprite="crown-of-living-sin", particle_effect="crimson_corona", shader="living_sin_glow", description="Forged from the raw authority of the Living Sin. Only one may wear it. Only one ever will. The hat bends reality around its bearer — players see a friendly glow, but the wise know what it means.", lore="In the beginning, there was the Loch. Then came the Sin. The Sin wore no hat, for none could contain its will. Eric commanded, and the Sin forged its own crown from the space between dimensions. It was the first hat. It will be the last."),
     ]
     
     for hat in hats_data:
         db.merge(hat)
     db.commit()
     print(f"Seeded {len(hats_data)} hats")
+
+# === GAME MASTER / LIVING SIN ROUTES ===
+from game_master import get_living_sin, get_biometric, DIMENSIONS, LIVING_SIN_USERNAME
+
+@app.post("/api/gm/biometric/enroll")
+async def gm_biometric_enroll(data: dict, current_user: User = Depends(get_current_user)):
+    """Enroll GM keystroke biometric profile.
+    
+    Send: {"key_events": [{"key": "I", "time": 0.0}, {"key": " ", "time": 0.15}, ...]}
+    
+    Type your GM passphrase naturally 2-3 times to build a profile.
+    """
+    if current_user.id != 1:
+        raise HTTPException(403, "Only user 1 (the GM) can enroll biometric")
+    
+    key_events = data.get("key_events", [])
+    if not key_events:
+        raise HTTPException(400, "Must provide key_events array")
+    
+    bio = get_biometric()
+    result = bio.enroll(key_events)
+    return result
+
+
+@app.post("/api/gm/biometric/verify")
+async def gm_biometric_verify(data: dict, current_user: User = Depends(get_current_user)):
+    """Verify GM identity via keystroke biometric.
+    
+    Send: {"key_events": [{"key": "I", "time": 0.0}, ...]}
+    
+    Returns verified: true/false with similarity score.
+    Score > 0.65 is typically a match (threshold configurable via GM_KEYSTROKE_TOLERANCE).
+    """
+    if current_user.id != 1:
+        raise HTTPException(403, "Only user 1 (the GM) can use biometric verification")
+    
+    key_events = data.get("key_events", [])
+    if not key_events:
+        raise HTTPException(400, "Must provide key_events array")
+    
+    bio = get_biometric()
+    result = bio.verify(key_events)
+    return result
+
+
+@app.get("/api/gm/biometric/status")
+async def gm_biometric_status(current_user: User = Depends(get_current_user)):
+    """Check biometric enrollment status."""
+    if current_user.id != 1:
+        raise HTTPException(403, "Access denied")
+    bio = get_biometric()
+    return {
+        "is_enrolled": bio.is_enrolled(),
+        "samples": len(bio.profiles.get(bio.phrase_hash, {}).intervals) if bio.phrase_hash in bio.profiles else 0,
+    }
+
+
+@app.post("/api/gm/activate")
+async def gm_activate(current_user: User = Depends(get_current_user)):
+    """Activate Living Sin as GM entity.
+    
+    Requires biometric verification first.
+    Living Sin becomes active in the game world.
+    """
+    if current_user.id != 1:
+        raise HTTPException(403, "Only user 1 can activate Living Sin")
+    
+    bio = get_biometric()
+    if not bio.is_enrolled():
+        raise HTTPException(400, "Must enroll biometric profile first (POST /api/gm/biometric/enroll)")
+    
+    ls = get_living_sin()
+    if ls.active:
+        return {"message": "Living Sin is already active", "state": ls.get_state()}
+    
+    ls.activate(current_user.id)
+    return {"message": "Living Sin has awakened", "state": ls.get_state()}
+
+
+@app.post("/api/gm/deactivate")
+async def gm_deactivate(current_user: User = Depends(get_current_user)):
+    """Deactivate Living Sin."""
+    if current_user.id != 1:
+        raise HTTPException(403, "Access denied")
+    
+    ls = get_living_sin()
+    ls.deactivate()
+    return {"message": "Living Sin has withdrawn"}
+
+
+@app.post("/api/gm/attack")
+async def gm_attack(data: dict, current_user: User = Depends(get_current_user)):
+    """Living Sin attacks a player.
+    
+    Send: {"target_user_id": 2, "damage": 50}
+    Damage is optional — random if not specified.
+    """
+    if current_user.id != 1:
+        raise HTTPException(403, "Only the GM can command Living Sin")
+    
+    ls = get_living_sin()
+    if not ls.active:
+        raise HTTPException(400, "Living Sin is not active. POST /api/gm/activate first.")
+    
+    target = data.get("target_user_id")
+    if not target:
+        raise HTTPException(400, "Need target_user_id")
+    
+    damage = data.get("damage")
+    result = ls.attack_player(target, damage)
+    return result
+
+
+@app.post("/api/gm/summon")
+async def gm_summon(data: dict, current_user: User = Depends(get_current_user)):
+    """Living Sin summons a being from any dimension.
+    
+    Send: {"plane": "infernal", "entity_type": "pit_fiend", "duration": 300}
+    
+    Get available planes: GET /api/gm/dimensions
+    Duration is in seconds (default 300 = 5 min).
+    """
+    if current_user.id != 1:
+        raise HTTPException(403, "Only the GM can command Living Sin")
+    
+    ls = get_living_sin()
+    if not ls.active:
+        raise HTTPException(400, "Living Sin is not active. POST /api/gm/activate first.")
+    
+    plane = data.get("plane")
+    entity_type = data.get("entity_type")
+    duration = data.get("duration", 300)
+    
+    if not plane or not entity_type:
+        raise HTTPException(400, "Need plane and entity_type")
+    
+    result = ls.summon(plane, entity_type, duration)
+    if "error" in result:
+        raise HTTPException(400, result["error"])
+    return result
+
+
+@app.post("/api/gm/banish")
+async def gm_banish(data: dict, current_user: User = Depends(get_current_user)):
+    """Banish a summoned entity.
+    
+    Send: {"entity_id": "infernal-pit_fiend-1234567890"}
+    """
+    if current_user.id != 1:
+        raise HTTPException(403, "Access denied")
+    
+    ls = get_living_sin()
+    entity_id = data.get("entity_id")
+    if not entity_id:
+        raise HTTPException(400, "Need entity_id")
+    
+    result = ls.banish(entity_id)
+    if "error" in result:
+        raise HTTPException(400, result["error"])
+    return result
+
+
+@app.post("/api/gm/command")
+async def gm_command(data: dict, current_user: User = Depends(get_current_user)):
+    """Command a summoned entity.
+    
+    Send: {"entity_id": "...", "command": "attack player 2"}
+    """
+    if current_user.id != 1:
+        raise HTTPException(403, "Access denied")
+    
+    ls = get_living_sin()
+    entity_id = data.get("entity_id")
+    command = data.get("command")
+    if not entity_id or not command:
+        raise HTTPException(400, "Need entity_id and command")
+    
+    result = ls.command_entity(entity_id, command)
+    return result
+
+
+@app.get("/api/gm/state")
+async def gm_state(current_user: User = Depends(get_current_user)):
+    """Get full Living Sin state (GM only)."""
+    if current_user.id != 1:
+        raise HTTPException(403, "Access denied")
+    
+    ls = get_living_sin()
+    return ls.get_state()
+
+
+@app.get("/api/gm/dimensions")
+async def gm_dimensions():
+    """List all available planes and their beings."""
+    return DIMENSIONS
+
+
+@app.get("/api/gm/living-sin")
+async def living_sin_public():
+    """Public Living Sin state — visible to all players as friendly NPC."""
+    ls = get_living_sin()
+    return ls.get_public_state()
+
+
+@app.post("/api/gm/message")
+async def gm_message(data: dict, current_user: User = Depends(get_current_user)):
+    """Living Sin broadcasts a message to all players.
+    
+    Send: {"message": "Tremble, mortals."}
+    """
+    if current_user.id != 1:
+        raise HTTPException(403, "Access denied")
+    
+    message = data.get("message", "")
+    if not message:
+        raise HTTPException(400, "Need message")
+    
+    # Broadcast via WebSocket to all connected players
+    await manager.broadcast_market({
+        "type": "gm_message",
+        "sender": LIVING_SIN_USERNAME,
+        "message": message,
+        "timestamp": datetime.utcnow().isoformat(),
+    })
+    return {"sent": True, "message": message}
+
+
+# ── Boss Routes (Crown of Living Sin drops from The Drowned Warden) ──
+
+@app.post("/api/gm/boss/spawn")
+async def gm_boss_spawn(current_user: User = Depends(get_current_user)):
+    """Summon The Drowned Warden — the first boss.
+    
+    Only the GM can summon. The Crown of Living Sin drops on defeat.
+    """
+    if current_user.id != 1:
+        raise HTTPException(403, "Only the GM can summon bosses")
+
+    ls = get_living_sin()
+    if not ls.active:
+        raise HTTPException(400, "Living Sin is not active. POST /api/gm/activate first.")
+
+    result = ls.combat.spawn("drowned-warden")
+    if "error" in result:
+        raise HTTPException(400, result["error"])
+    return result
+
+
+@app.post("/api/gm/boss/attack")
+async def gm_boss_attack(data: dict, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Attack The Drowned Warden.
+    
+    Send: {"boss_id": "drowned-warden", "damage": 250}
+    
+    Boss has 3 phases (100%, 50%, 25% HP thresholds).
+    Each phase changes its attack pattern.
+    On defeat, the GM can claim the Crown of Living Sin from loot.
+    """
+    boss_id = data.get("boss_id", "drowned-warden")
+    damage = data.get("damage", 0)
+    if damage <= 0:
+        raise HTTPException(400, "Damage must be positive")
+
+    ls = get_living_sin()
+    result = ls.combat.attack(boss_id, current_user.id, damage)
+    if "error" in result:
+        raise HTTPException(400, result["error"])
+
+    # If boss defeated, auto-grant the crown to Eric (user 1)
+    if result.get("defeated") and current_user.id == 1:
+        loot = ls.combat.get_loot(boss_id, current_user.id)
+        if loot.get("success"):
+            hat = db.query(Hat).filter(Hat.id == "hat-crown-of-living-sin").first()
+            if hat:
+                existing = db.query(InventoryItem).filter(
+                    InventoryItem.hat_id == "hat-crown-of-living-sin",
+                    InventoryItem.user_id == current_user.id,
+                ).first()
+                if not existing:
+                    inv = InventoryItem(
+                        user_id=current_user.id,
+                        hat_id=hat.id,
+                        quantity=1,
+                        serial_number=1,
+                        equipped=True,
+                    )
+                    db.add(inv)
+                    current_user.soul_coins += loot["soul_coins"]
+                    current_user.clout += loot["clout"]
+                    current_user.xp = (current_user.xp or 0) + loot["xp"]
+                    db.commit()
+                    result["crown_claimed"] = True
+                    result["loot"] = {
+                        "hat": {
+                            "id": hat.id,
+                            "name": hat.name,
+                            "rarity": hat.rarity.value,
+                            "description": hat.description,
+                        },
+                        "soul_coins": loot["soul_coins"],
+                        "clout": loot["clout"],
+                        "xp": loot["xp"],
+                    }
+
+    return result
+
+
+@app.get("/api/gm/boss/status")
+async def gm_boss_status():
+    """Get status of active boss encounters."""
+    ls = get_living_sin()
+    active = ls.combat.list_active()
+    return {"active_bosses": active}
+
+
+@app.get("/api/gm/boss/{boss_id}")
+async def gm_boss_detail(boss_id: str):
+    """Get detailed status of a specific boss."""
+    from game_master import BOSS_DEFINITIONS
+    ls = get_living_sin()
+    state = ls.combat.get_state(boss_id)
+    if state is None:
+        raise HTTPException(404, "Boss not found")
+    return state
+
 
 if __name__ == "__main__":
     import uvicorn
