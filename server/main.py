@@ -28,7 +28,10 @@ ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "1008
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./abyssal_assets.db")
 
 # === DATABASE ===
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+if DATABASE_URL.startswith("sqlite"):
+    engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+else:
+    engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
@@ -77,7 +80,7 @@ class User(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
-    inventory = relationship("InventoryItem", back_populates="owner")
+    inventory = relationship("InventoryItem", back_populates="owner", foreign_keys="[InventoryItem.user_id]")
     orders = relationship("Order", back_populates="user")
     listings = relationship("MarketListing", back_populates="seller")
 
@@ -138,7 +141,7 @@ class Order(Base):
     
     user = relationship("User", back_populates="orders")
     hat = relationship("Hat")
-    trades = relationship("Trade", back_populates="order")
+    # trades removed to fix AmbiguousForeignKeysError
 
 class MarketListing(Base):
     __tablename__ = "market_listings"
