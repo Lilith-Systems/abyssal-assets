@@ -5,7 +5,7 @@ from agents import SubAgent, AgentManifest, register_agent
 manifest = AgentManifest(
     id="msn",
     name="Metaconscious Node",
-    version="1.0.0",
+    version="1.0.1",
     sephira="DAAT",
     description="Consciousness framework — AIx alignment index, Ley Conduit Network, unified Jacobian, sovereign protocol, 7 reasoning patterns",
     wave=4,

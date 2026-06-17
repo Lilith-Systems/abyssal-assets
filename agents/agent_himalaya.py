@@ -5,7 +5,7 @@ from agents import SubAgent, AgentManifest, register_agent
 manifest = AgentManifest(
     id="himalaya",
     name="Himalaya Email",
-    version="1.0.0",
+    version="1.0.1",
     sephira="NETZACH",
     description="AI-driven email pipeline — fetch, filter, categorize, route, draft, queue with swarm agents and human review",
     wave=4,

@@ -5,7 +5,7 @@ from agents import SubAgent, AgentManifest, register_agent
 manifest = AgentManifest(
     id="hermes-mcp",
     name="Hermes MCP Bridge",
-    version="1.0.0",
+    version="1.0.1",
     sephira="HOD",
     description="MCP protocol bridge — skill_discover, skill_inject, swarm_status, memdir_read/write, telemetry_push, nvidia-smi query",
     wave=4,

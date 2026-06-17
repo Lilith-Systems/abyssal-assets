@@ -5,7 +5,7 @@ from agents import SubAgent, AgentManifest, register_agent
 manifest = AgentManifest(
     id="court",
     name="Sephirotic Court",
-    version="1.0.0",
+    version="1.0.1",
     sephira="MALKUTH",
     description="Wave-based Sephirotic deployment — 7 Archons across 2 waves, court rendezvous, coherence checks, orphan reaping",
     wave=4,

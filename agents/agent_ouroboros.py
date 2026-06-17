@@ -5,7 +5,7 @@ from agents import SubAgent, AgentManifest, register_agent
 manifest = AgentManifest(
     id="ouroboros",
     name="Ouroboros RNN",
-    version="1.0.0",
+    version="1.0.1",
     sephira="DAAT",
     description="Continuous self-supervised learning daemon — file scanning, Akashic compression, RNN attention training, memory store",
     wave=4,
@@ -26,7 +26,8 @@ class OuroborosAgent(SubAgent):
         @self.router.get("/memory")
         async def memory_stats():
             from pathlib import Path
-            db_path = Path("/home/tehlappy/Desktop/AI/Pub/golem_diary.db")
+            import os
+            db_path = Path(os.environ.get("PUB_ROOT", Path.home() / "Desktop/AI/Pub")) / "golem_diary.db"
             if db_path.exists():
                 return {
                     "db": str(db_path),

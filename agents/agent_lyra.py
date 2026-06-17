@@ -5,7 +5,7 @@ from agents import SubAgent, AgentManifest, register_agent
 manifest = AgentManifest(
     id="lyra",
     name="Lyra Dialogue",
-    version="1.0.0",
+    version="1.0.1",
     sephira="HOD",
     description="Lyra dialogue system bridge — NPC conversation, sovereign protocol, resonance interface at :3211",
     wave=2,

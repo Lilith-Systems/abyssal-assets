@@ -5,7 +5,7 @@ from agents import SubAgent, AgentManifest, register_agent
 manifest = AgentManifest(
     id="architect",
     name="Game Architect",
-    version="1.0.0",
+    version="1.0.1",
     sephira="CHOKMAH",
     description="Game architecture reference — GDD, design decisions, full stack vision",
     wave=1,

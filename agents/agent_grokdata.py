@@ -5,12 +5,15 @@ from agents import SubAgent, AgentManifest, register_agent
 from fastapi import Query
 import json, os, time, sqlite3
 
-DB_PATH = os.path.expanduser("~/Desktop/AI/Pub/00_CORE_SERVICES/quantum_paradox_terminal/golem_diary.db")
+DB_PATH = os.path.join(
+    os.environ.get("PUB_ROOT", os.path.expanduser("~/Desktop/AI/Pub")),
+    "00_CORE_SERVICES", "quantum_paradox_terminal", "golem_diary.db"
+)
 
 manifest = AgentManifest(
     id="grokdata",
     name="Grokdata Memory Index",
-    version="1.0.0",
+    version="1.0.1",
     description="Indexed Grok conversation history — search, browse, and retrieve past conversations",
     wave=4,
     sephira="Da'at",

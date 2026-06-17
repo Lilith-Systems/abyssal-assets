@@ -5,7 +5,7 @@ from agents import SubAgent, AgentManifest, register_agent
 manifest = AgentManifest(
     id="swarm",
     name="Swarm Orchestrator",
-    version="1.0.0",
+    version="1.0.1",
     sephira="TIFERET",
     description="Multi-agent parallel execution — 10 agent roster, wave deployment, queue management, circuit breaker, backpressure",
     wave=4,

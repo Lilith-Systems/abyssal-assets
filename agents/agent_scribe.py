@@ -5,7 +5,7 @@ from agents import SubAgent, AgentManifest, register_agent
 manifest = AgentManifest(
     id="scribe",
     name="Scribe Ledger",
-    version="1.0.0",
+    version="1.0.1",
     sephira="HOD",
     description="Hash-chain ledger — tamper-detection via SHA-256 chain, archival migration, emergency snapshot, Palantir relay",
     wave=4,
@@ -28,7 +28,8 @@ class ScribeAgent(SubAgent):
         @self.router.get("/archives")
         async def archive_status():
             from pathlib import Path
-            archive_dir = Path("/home/tehlappy/Desktop/AI/Pub/08_ARCHIVE")
+            import os
+            archive_dir = Path(os.environ.get("PUB_ROOT", Path.home() / "Desktop/AI/Pub")) / "08_ARCHIVE"
             if archive_dir.exists():
                 entries = list(archive_dir.iterdir())
                 return {"exists": True, "archive_entries": len(entries), "path": str(archive_dir)}

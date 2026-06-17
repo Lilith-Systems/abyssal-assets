@@ -5,7 +5,7 @@ from agents import SubAgent, AgentManifest, register_agent
 manifest = AgentManifest(
     id="migration",
     name="Linux Migration",
-    version="1.0.0",
+    version="1.0.1",
     sephira="MALKUTH",
     description="Linux migration tools — batch path fixing, systemd deployment, bash equivalents for all PowerShell agents",
     wave=3,
@@ -19,7 +19,8 @@ class MigrationAgent(SubAgent):
         @self.router.get("/audit")
         async def audit_windows():
             from pathlib import Path
-            pub = Path("/home/tehlappy/Desktop/AI/Pub")
+            import os
+            pub = Path(os.environ.get("PUB_ROOT", Path.home() / "Desktop/AI/Pub"))
             ps1_files = list(pub.rglob("*.ps1"))
             bat_files = list(pub.rglob("*.bat"))
             return {

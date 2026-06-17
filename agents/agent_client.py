@@ -5,7 +5,7 @@ from agents import SubAgent, AgentManifest, register_agent
 manifest = AgentManifest(
     id="client",
     name="Game Client",
-    version="1.0.0",
+    version="1.0.1",
     sephira="CHESED",
     description="Phaser 3 TypeScript client — MainMenu, Market CLOB, Dredge mini-game, GameScene",
     wave=2,

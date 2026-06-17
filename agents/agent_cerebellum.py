@@ -5,7 +5,7 @@ from agents import SubAgent, AgentManifest, register_agent
 manifest = AgentManifest(
     id="cerebellum",
     name="Speculative Cerebellum",
-    version="1.0.0",
+    version="1.0.1",
     sephira="BINAH",
     description="Bounded local prep + cloud offload — Ollama local speculation, rich model verification, circuit breaker",
     wave=4,

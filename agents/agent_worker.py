@@ -5,7 +5,7 @@ from agents import SubAgent, AgentManifest, register_agent
 manifest = AgentManifest(
     id="worker",
     name="External Worker Bridge",
-    version="1.0.0",
+    version="1.0.1",
     sephira="CHOKMAH",
     description="BYO model inference — OpenAI (GPT-4/o3), xAI (Grok), Anthropic (Claude), Google (Gemini), circuit breaker, priority chain",
     wave=4,

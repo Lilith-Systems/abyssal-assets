@@ -9,7 +9,7 @@ from pydantic import BaseModel
 manifest = AgentManifest(
     id="cortex",
     name="Unified Cortex",
-    version="1.0.0",
+    version="1.0.1",
     sephira="BINAH",
     description="GPU-aware AI routing — NVML telemetry, EWMA smoothing, hysteresis router (LOCAL/HYBRID/CLOUD), local Ollama inference, cloud fallback, circuit breaker",
     wave=4,

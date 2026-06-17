@@ -5,7 +5,7 @@ from agents import SubAgent, AgentManifest, register_agent
 manifest = AgentManifest(
     id="kairos",
     name="Kairos Dream",
-    version="1.0.0",
+    version="1.0.1",
     sephira="HOD",
     description="Dream/time state processor — hypnagogic/hypnopompic capture, kairos timing, resonance-gated injection, memory storage",
     wave=4,
@@ -36,8 +36,8 @@ class KairosAgent(SubAgent):
         @self.router.get("/queue")
         async def dream_queue():
             from pathlib import Path
-            import json
-            queue_path = Path("/home/tehlappy/Desktop/AI/Pub/golem_diary.db")
+            import json, os
+            queue_path = Path(os.environ.get("PUB_ROOT", Path.home() / "Desktop/AI/Pub")) / "golem_diary.db"
             return {"queue_size": 0, "delivered": 0, "pending": 0, "db_present": queue_path.exists()}
 
 

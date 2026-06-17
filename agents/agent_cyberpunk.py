@@ -3,19 +3,20 @@
 
 from agents import SubAgent, AgentManifest, register_agent
 from pathlib import Path
-import json
+import json, os
 
 manifest = AgentManifest(
     id="cyberpunk",
     name="Cyberpunk Bridge",
-    version="1.0.0",
+    version="1.0.1",
     sephira="NETZACH",
     description="Live Cyberpunk 2077 telemetry — game status, GPU metrics, NGD routing, frame analysis, optimization recommendations",
     wave=4,
 )
 
-TELEMETRY_PATH = Path("/home/tehlappy/Desktop/AI/invite/runtime/cyberpunk_telemetry.json")
-NGD_STATUS_PATH = Path("/home/tehlappy/Desktop/AI/invite/runtime/nvidia_gratitude_driver/status.json")
+_INVITE = Path(os.environ.get("INVITE_ROOT", Path.home() / "Desktop/AI" / "invite"))
+TELEMETRY_PATH = _INVITE / "runtime" / "cyberpunk_telemetry.json"
+NGD_STATUS_PATH = _INVITE / "runtime" / "nvidia_gratitude_driver" / "status.json"
 
 
 def _read_json(path):
@@ -59,7 +60,7 @@ class CyberpunkAgent(SubAgent):
 
         @self.router.get("/mods")
         async def mods():
-            mods_path = Path("/home/tehlappy/.local/share/Steam/steamapps/common/Cyberpunk 2077/r6/mods")
+            mods_path = Path("~/.local/share/Steam/steamapps/common/Cyberpunk 2077/r6/mods").expanduser()
             if mods_path.exists():
                 mods = sorted(d.name for d in mods_path.iterdir() if d.is_dir())
                 return {"mods": mods, "count": len(mods), "path": str(mods_path)}

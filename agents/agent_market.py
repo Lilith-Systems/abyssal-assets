@@ -5,7 +5,7 @@ from agents import SubAgent, AgentManifest, register_agent
 manifest = AgentManifest(
     id="market",
     name="Abyssal Exchange",
-    version="1.0.0",
+    version="1.0.1",
     sephira="NETZACH",
     description="Market system — CLOB, order book, hat trading, market maker config, fee structure",
     wave=2,

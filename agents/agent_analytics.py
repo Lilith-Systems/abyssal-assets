@@ -5,7 +5,7 @@ from agents import SubAgent, AgentManifest, register_agent
 manifest = AgentManifest(
     id="analytics",
     name="Business Analytics",
-    version="1.0.0",
+    version="1.0.1",
     sephira="NETZACH",
     description="AI-driven business metrics — DAU/WAU/MAU, MRR/ARPU, trend analysis, anomaly detection, forecasting, automated reports",
     wave=4,

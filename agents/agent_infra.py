@@ -5,7 +5,7 @@ from agents import SubAgent, AgentManifest, register_agent
 manifest = AgentManifest(
     id="infra",
     name="Infrastructure",
-    version="1.0.0",
+    version="1.0.1",
     sephira="YESOD",
     description="Build, config, deployment — Docker Compose, Vite, TypeScript, systemd services",
     wave=3,

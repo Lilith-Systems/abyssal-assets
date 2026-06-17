@@ -5,7 +5,7 @@ from agents import SubAgent, AgentManifest, register_agent
 manifest = AgentManifest(
     id="skills",
     name="Abyssal Arts",
-    version="1.0.0",
+    version="1.0.1",
     sephira="TIFERET",
     description="Skill system — 24 skills across 6 categories, XP curves (1.15^level), synergies, specializations",
     wave=2,

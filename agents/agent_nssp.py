@@ -5,10 +5,12 @@ from agents import SubAgent, AgentManifest, register_agent
 from pathlib import Path
 import json, os, time, random
 
+_INVITE = Path(os.environ.get("INVITE_ROOT", Path.home() / "Desktop/AI" / "invite"))
+
 manifest = AgentManifest(
     id="nssp",
     name="NSSP Bridge",
-    version="1.0.0",
+    version="1.0.1",
     sephira="DAAT",
     description="Neural Sovereign Systems Platform — bridges CP2077 in-game events to MSN agents: Living Sin GM, cortex inference, Abyssal Assets crossover, Nessie friendship, NGD telemetry, Lyra dialogue",
     wave=4,
@@ -219,8 +221,8 @@ class NSSPAgent(SubAgent):
 
         @self.router.get("/bridge/telemetry")
         async def bridge_telemetry():
-            cp_path = Path("/home/tehlappy/Desktop/AI/invite/runtime/cyberpunk_telemetry.json")
-            ngd_path = Path("/home/tehlappy/Desktop/AI/invite/runtime/nvidia_gratitude_driver/status.json")
+            cp_path = _INVITE / "runtime" / "cyberpunk_telemetry.json"
+            ngd_path = _INVITE / "runtime" / "nvidia_gratitude_driver" / "status.json"
             cp = _load_json(cp_path) if cp_path.exists() else None
             ngd = _load_json(ngd_path) if ngd_path.exists() else None
             return {"cyberpunk": cp, "ngd": ngd}
@@ -342,7 +344,7 @@ class NSSPAgent(SubAgent):
                 "game_server_running": _check_url("http://localhost:8000/api/auth/me"),
                 "ollama_running": _check_url("http://localhost:11434/api/tags"),
                 "cp2077_running": _check_process("Cyberpunk2077"),
-                "ngd_active": _check_path(Path("/home/tehlappy/Desktop/AI/invite/runtime/nvidia_gratitude_driver/status.json")),
+                "ngd_active": _check_path(_INVITE / "runtime" / "nvidia_gratitude_driver" / "status.json"),
                 "msn_agents": 27,
                 "nssp_version": "1.0.0-BUILD_RUBEDO",
             }

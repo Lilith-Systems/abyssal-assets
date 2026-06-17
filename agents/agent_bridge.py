@@ -5,7 +5,7 @@ from agents import SubAgent, AgentManifest, register_agent
 manifest = AgentManifest(
     id="antigravity",
     name="Antigravity Bridge",
-    version="1.0.0",
+    version="1.0.1",
     sephira="BINAH",
     description="Async ingestion pipeline — data sources → SQLite store → WebSocket reality feed, sync/async client libraries, 1000 req/min rate limit",
     wave=4,

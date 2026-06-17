@@ -5,7 +5,7 @@ from agents import SubAgent, AgentManifest, register_agent
 manifest = AgentManifest(
     id="ngd",
     name="NGD Cortex",
-    version="1.0.0",
+    version="1.0.1",
     sephira="BINAH",
     description="GPU-aware AI routing — NVML telemetry, hysteresis router (LOCAL/HYBRID/CLOUD), EWMA smoothing, Nemotron prompt governor",
     wave=4,
