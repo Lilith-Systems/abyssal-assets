@@ -1,0 +1,24 @@
+{
+  "friendship_tier": 1,
+  "friendship_xp": 750,
+  "sightings": 2,
+  "communions": 0,
+  "last_sighting": {
+    "location": "Pacifica_Coast",
+    "time": 1781678078.2770612
+  },
+  "tier_thresholds": [
+    0,
+    500,
+    2000,
+    5000,
+    15000
+  ],
+  "tier_names": [
+    "Curious Observer",
+    "Respected Visitor",
+    "Trusted Ally",
+    "Guardian's Chosen",
+    "DEEP KIN"
+  ]
+}

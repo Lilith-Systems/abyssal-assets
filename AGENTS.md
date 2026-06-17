@@ -38,21 +38,25 @@ python deploy_waves.py 8007
 # Lyra dialogue server
 systemctl --user start lyra-api.service                       # port 3211
 
+# NSSP full stack (launch script)
+./launch_nssp.sh                                              # MSN + CP + Lyra + Hermes
+
 # Full stack (3 terminals)
 # Terminal 1: python server/main.py                           # :8000
 # Terminal 2: npm run dev --prefix client                     # :3000
 # Terminal 3: python msn_router.py 8007                       # :8007
 ```
 
-## MSN Agent Map (27 agents, 4 waves)
+## MSN Agent Map (28 agents, 4 waves)
 | Wave | Sephirot | Agents |
 |------|----------|--------|
 | 1 — Foundation | Keter → Chokmah → Binah | root, architect, server |
 | 2 — Interface | Chesed → Gevurah → Tiferet → Netzach → Hod | client, bestiary, skills, market, lyra, living-sin |
 | 3 — Infrastructure | Yesod → Malkuth | infra, migration |
-| 4 — Metaconscious | Da'at → Binah → Hod → Tiferet → Malkuth → Netzach → Gevurah → Chokmah | msn, ngd, cerebellum, ouroboros, hermes-mcp, kairos, swarm, court, himalaya, antigravity, yeshua, scribe, analytics, worker, cortex, cyberpunk |
+| 4 — Metaconscious | Da'at → Binah → Hod → Tiferet → Malkuth → Netzach → Gevurah → Chokmah | msn, ngd, cerebellum, ouroboros, hermes-mcp, kairos, swarm, court, himalaya, antigravity, yeshua, scribe, analytics, worker, cortex, cyberpunk, **nssp** |
 
 ## Key Architecture Decisions
+- **NSSP Bridge Agent** (Da'at) — NSSP OS shell (status, roast, sovereignty, liberate), Nessie friendship (5 tiers, 6 Night City sighting locations, communion), Abyssal Assets crossover, CP2077 game event bridge, full integration health status
 - **Cortex** replaces NGD/Cerebellum/Worker triad — unified EWMA-smoothed GPU telemetry with hysteresis routing (LOCAL/HYBRID/CLOUD)
 - **Living Sin** persists to `server/runtime/gm/living_sin_state.json` — file-based IPC between game (:8000) and MSN (:8007)
 - **Messages from living-sin** route through cortex for real nemotron-mini inference (no hardcoded responses)
